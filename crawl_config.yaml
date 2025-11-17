@@ -9,13 +9,18 @@ browser:
   user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
 
 crawl:
-  seed_url: "https://docs.langchain.com/oss/python/langchain/overview"
+  seed_url: "https://docs.llamaindex.org.cn/en/stable"
   output_dir: "crawl4ai_method/output"
   concurrency: 1
   max_pages: 5
   page_timeout_ms: 120000
   # wait_for_timeout_ms: 60000
   respect_parent_path: true
+  # scope_mode determines which subtree is considered the crawl boundary.
+  # Options:
+  #   "parent" - use the seed URL's parent directory as the scope root (default).
+  #   "seed"   - treat the seed URL itself as the root and crawl all of its descendants.
+  scope_mode: "seed"
 
 delay:
   min_seconds: 1.5

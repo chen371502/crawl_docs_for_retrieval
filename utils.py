@@ -81,6 +81,30 @@ def shares_same_parent(url: str, parent_url: str) -> bool:
     return derive_parent_url(url) == parent_url
 
 
+def is_within_scope(url: str, scope_url: str) -> bool:
+    """Check whether ``url`` belongs to the subtree defined by ``scope_url``."""
+
+    if not scope_url:
+        return True
+
+    candidate = urlparse(url)
+    scope = urlparse(scope_url)
+    if not candidate.scheme or not candidate.netloc:
+        return False
+    if candidate.scheme.lower() != scope.scheme.lower():
+        return False
+    if candidate.netloc.lower() != scope.netloc.lower():
+        return False
+
+    candidate_path = _normalized_path(candidate.path)
+    scope_path = _normalized_path(scope.path)
+    if scope_path == "/":
+        return True
+    if scope_path.endswith("/"):
+        return candidate_path.startswith(scope_path)
+    return candidate_path == scope_path or candidate_path.startswith(f"{scope_path}/")
+
+
 def domain_key(url: str) -> str:
     parsed = urlparse(url)
     return f"{parsed.scheme.lower()}://{parsed.netloc.lower()}"

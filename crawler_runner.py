@@ -41,7 +41,7 @@ class CrawlOrchestrator:
     def __init__(self, settings: CrawlSettingsBundle) -> None:
         self.settings = settings
         self._queue = CrawlQueue(
-            parent_url=settings.crawl.parent_url,
+            scope_url=settings.crawl.scope_url,
             respect_parent=settings.crawl.respect_parent_path,
         )
         self._robots = RobotsManager(settings.browser.user_agent)

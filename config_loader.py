@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional
 
 import yaml
 
-from .utils import derive_parent_url
+from .utils import derive_parent_url, normalize_url
 
 DEFAULT_CONFIG_PATH = Path(__file__).with_name("crawl_config.yaml")
 DEFAULT_USER_AGENT = (
@@ -95,6 +95,7 @@ class CrawlParameters:
     respect_parent_path: bool = True
     page_timeout_ms: int = 120_000
     wait_for_timeout_ms: Optional[int] = None
+    scope_mode: str = "parent"
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "CrawlParameters":
@@ -113,6 +114,9 @@ class CrawlParameters:
             page_timeout_ms = 1000
         wait_for_timeout = data.get("wait_for_timeout_ms")
         wait_for_timeout_ms = int(wait_for_timeout) if wait_for_timeout is not None else None
+        scope_mode = str(data.get("scope_mode", cls.scope_mode)).strip().lower()
+        if scope_mode not in {"parent", "seed"}:
+            scope_mode = cls.scope_mode
 
         return cls(
             seed_url=str(data["seed_url"]),
@@ -124,10 +128,18 @@ class CrawlParameters:
             ),
             page_timeout_ms=page_timeout_ms,
             wait_for_timeout_ms=wait_for_timeout_ms,
+            scope_mode=scope_mode,
         )
 
     @property
     def parent_url(self) -> str:
+        return derive_parent_url(self.seed_url)
+
+    @property
+    def scope_url(self) -> str:
+        if self.scope_mode == "seed":
+            normalized = normalize_url(self.seed_url)
+            return normalized or self.seed_url
         return derive_parent_url(self.seed_url)
 
 

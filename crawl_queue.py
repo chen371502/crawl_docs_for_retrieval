@@ -3,14 +3,14 @@ from __future__ import annotations
 from collections import deque
 from typing import Deque, Iterable, List, Optional, Set
 
-from .utils import normalize_url, shares_same_parent
+from .utils import is_within_scope, normalize_url
 
 
 class CrawlQueue:
     """Queue wrapper that deduplicates URLs and enforces the parent constraint."""
 
-    def __init__(self, parent_url: str, respect_parent: bool = True) -> None:
-        self._parent_url = parent_url
+    def __init__(self, scope_url: str, respect_parent: bool = True) -> None:
+        self._scope_url = scope_url
         self._respect_parent = respect_parent
         self._pending: Deque[str] = deque()
         self._queued: Set[str] = set()
@@ -20,7 +20,7 @@ class CrawlQueue:
         normalized = normalize_url(url, base_url)
         if not normalized:
             return False
-        if self._respect_parent and not shares_same_parent(normalized, self._parent_url):
+        if self._respect_parent and not is_within_scope(normalized, self._scope_url):
             return False
         if normalized in self._queued or normalized in self._seen:
             return False
