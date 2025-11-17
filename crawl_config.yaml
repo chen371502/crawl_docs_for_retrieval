@@ -1,0 +1,30 @@
+# Default configuration for the Crawl4AI-driven scraper.
+#
+# Update the ``seed_url`` before running the crawler. Only links whose parent
+# matches the parent directory of this seed will be enqueued.
+
+browser:
+  headless: true
+  verbose: false
+  user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+
+crawl:
+  seed_url: "https://docs.langchain.com/oss/python/langchain/overview"
+  output_dir: "crawl4ai_method/output"
+  concurrency: 1
+  max_pages: 5
+  page_timeout_ms: 120000
+  # wait_for_timeout_ms: 60000
+  respect_parent_path: true
+
+delay:
+  min_seconds: 1.5
+  max_seconds: 3.5
+
+tab_traversal:
+  enabled: true
+  max_groups: 12
+  max_tabs_per_group: 5
+  max_total_tabs: 40
+  heading_template: "####### [Tab: {group} - {label}]"
+  wait_for_activation_ms: 4000
