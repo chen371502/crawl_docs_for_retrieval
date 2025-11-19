@@ -162,7 +162,7 @@ class CrawlOrchestrator:
             logger.info("No markdown content returned for %s", url)
 
         source_url = getattr(result, "redirected_url", None) or result.url or url
-        new_links = self._extract_links(result)
+        new_links = self._extract_links(result, tab_blocks)
         return DiscoveredLinks(page_url=source_url, hrefs=new_links)
 
     async def _log_robots_info(self, info: RobotsInfo) -> None:
@@ -212,7 +212,9 @@ class CrawlOrchestrator:
             base_text = base_text.strip()
         return base_text or None
 
-    def _extract_links(self, result) -> List[str]:
+    def _extract_links(
+        self, result, tab_blocks: Optional[List[TabMarkdownBlock]] = None
+    ) -> List[str]:
         collected: List[str] = []
         link_groups = getattr(result, "links", {}) or {}
         for group in ("internal", "external"):
@@ -220,4 +222,10 @@ class CrawlOrchestrator:
                 href = (link.get("href") or "").strip()
                 if href:
                     collected.append(href)
+        if tab_blocks:
+            for block in tab_blocks:
+                for href in block.links:
+                    href = (href or "").strip()
+                    if href:
+                        collected.append(href)
         return collected

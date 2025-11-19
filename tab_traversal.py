@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import copy
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from textwrap import dedent
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from crawl4ai import AsyncWebCrawler, CrawlerRunConfig
 from playwright.async_api import Page, TimeoutError as PlaywrightTimeoutError
@@ -32,6 +32,7 @@ class TabMarkdownBlock:
     markdown_text: str
     index: int
     group_index: int
+    links: List[str] = field(default_factory=list)
 
 
 class TabTraversalManager:
@@ -83,13 +84,13 @@ class TabTraversalManager:
                 continue
             seen.add(digest_key)
 
-            markdown = await self._html_fragment_to_markdown(
+            markdown, links = await self._html_fragment_to_markdown(
                 crawler, base_config, url, capture.html
             )
-            if not markdown:
+            if not markdown and not links:
                 continue
-            markdown = markdown.strip()
-            if not markdown:
+            markdown = (markdown or "").strip()
+            if not markdown and not links:
                 continue
 
             blocks.append(
@@ -99,6 +100,7 @@ class TabTraversalManager:
                     markdown_text=markdown,
                     index=capture.index,
                     group_index=capture.group_index,
+                    links=links,
                 )
             )
 
@@ -112,7 +114,7 @@ class TabTraversalManager:
         base_config: CrawlerRunConfig,
         url: str,
         html_fragment: str,
-    ) -> Optional[str]:
+    ) -> Tuple[Optional[str], List[str]]:
         processing_config = copy.deepcopy(base_config)
         processing_config.session_id = None
         processing_config.js_code = None
@@ -131,12 +133,23 @@ class TabTraversalManager:
             )
         except Exception as exc:  # pragma: no cover
             logger.warning("Tab fragment conversion failed for %s: %s", url, exc)
-            return None
+            return None, []
 
         markdown = getattr(result, "markdown", None)
+        links = self._collect_links(result)
         if not markdown:
-            return None
-        return markdown.raw_markdown
+            return None, links
+        return markdown.raw_markdown, links
+@@
+    def _collect_links(self, result) -> List[str]:
+        collected: List[str] = []
+        link_groups = getattr(result, "links", {}) or {}
+        for group in ("internal", "external"):
+            for link in link_groups.get(group, []):
+                href = (link.get("href") or "").strip()
+                if href:
+                    collected.append(href)
+        return collected
 
     def _wrap_fragment(self, html_fragment: str) -> str:
         snippet = (html_fragment or "").strip()

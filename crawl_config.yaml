@@ -31,5 +31,5 @@ tab_traversal:
   max_groups: 12
   max_tabs_per_group: 5
   max_total_tabs: 40
-  heading_template: "####### [Tab: {group} - {label}]"
+  heading_template: "#### [Tab: {group} - {label}]"
   wait_for_activation_ms: 4000
